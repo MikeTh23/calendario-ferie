@@ -441,13 +441,25 @@ header h1 {
     header {
         flex-direction: column;
         gap: 8px;
-        text-align: center;
         border-radius: 0;
-        padding: 12px 15px;
+        padding: 10px 12px;
+    }
+
+    /* Pulsante hamburger piccolo e fisso a sinistra */
+    .sidebar-toggle {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        font-size: 1.2em;
+        padding: 4px 10px;
+        border-width: 1px;
     }
 
     header h1 {
-        font-size: 1.3em;
+        font-size: 1.2em;
+        text-align: center;
+        width: 100%;
+        padding-left: 40px;
     }
 
     .header-controls {
@@ -459,6 +471,12 @@ header h1 {
     .header-btn {
         font-size: 0.85em;
         padding: 5px 10px;
+    }
+
+    .header-input {
+        font-size: 0.85em;
+        padding: 5px 8px;
+        width: 120px;
     }
 
     #yearSelector {
