@@ -24,6 +24,9 @@ let closeBtn;
 let exportBtn;
 let importBtn;
 let importFileInput;
+let sidebarToggle;
+let sidebar;
+let sidebarClose;
 
 // Stato corrente
 let currentSelectedDate = null;
@@ -57,6 +60,9 @@ async function init() {
     exportBtn = document.getElementById('exportBtn');
     importBtn = document.getElementById('importBtn');
     importFileInput = document.getElementById('importFileInput');
+    sidebarToggle = document.getElementById('sidebarToggle');
+    sidebar = document.getElementById('sidebar');
+    sidebarClose = document.getElementById('sidebarClose');
 
     // Inizializza selettore anni (da 5 anni fa a 5 anni avanti)
     const currentYear = getSettings().currentYear;
@@ -130,6 +136,10 @@ function setupEventListeners() {
     };
 
     userNameInput.addEventListener('input', handleUserNameChangeDebounced);
+
+    // Sidebar toggle
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarClose.addEventListener('click', toggleSidebar);
 
     // Export/Import
     exportBtn.addEventListener('click', handleExport);
@@ -501,6 +511,13 @@ async function handleImport(event) {
         // Reset input file per permettere lo stesso file
         importFileInput.value = '';
     }
+}
+
+/**
+ * Toggle apertura/chiusura sidebar
+ */
+function toggleSidebar() {
+    sidebar.classList.toggle('open');
 }
 
 // Avvia l'applicazione quando il DOM è pronto

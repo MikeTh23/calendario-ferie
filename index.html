@@ -8,6 +8,7 @@
 </head>
 <body>
     <header>
+        <button id="sidebarToggle" class="sidebar-toggle" title="Mostra/Nascondi pannello ore">☰</button>
         <h1>📅 Calendario Ferie e PAR<span id="userNameDisplay"></span></h1>
         <div class="header-controls">
             <input type="text" id="userName" placeholder="Nome" maxlength="30" class="header-input">
@@ -21,26 +22,33 @@
     <!-- Input file nascosto per l'import -->
     <input type="file" id="importFileInput" accept=".json" style="display: none;">
 
-    <section id="counterPanel">
-        <div class="counter ferie">
-            <h3>Ferie</h3>
-            <label>Disponibili: <input type="number" id="availableFerie" min="0" step="8"></label>
-            <p>Usate: <span id="usedFerie">0</span>h</p>
-            <p>Rimanenti: <span id="remainingFerie">0</span>h</p>
+    <!-- Sidebar laterale con contatori -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>📊 Riepilogo Ore</h2>
+            <button id="sidebarClose" class="sidebar-close" title="Chiudi">✕</button>
         </div>
-        <div class="counter par">
-            <h3>PAR</h3>
-            <label>Disponibili: <input type="number" id="availablePAR" min="0" step="8"></label>
-            <p>Usate: <span id="usedPAR">0</span>h</p>
-            <p>Rimanenti: <span id="remainingPAR">0</span>h</p>
+        <div class="sidebar-content">
+            <div class="counter ferie">
+                <h3>Ferie</h3>
+                <label>Disponibili: <input type="number" id="availableFerie" min="0" step="8"></label>
+                <p>Usate: <span id="usedFerie">0</span>h</p>
+                <p>Rimanenti: <span id="remainingFerie">0</span>h</p>
+            </div>
+            <div class="counter par">
+                <h3>PAR</h3>
+                <label>Disponibili: <input type="number" id="availablePAR" min="0" step="8"></label>
+                <p>Usate: <span id="usedPAR">0</span>h</p>
+                <p>Rimanenti: <span id="remainingPAR">0</span>h</p>
+            </div>
+            <div class="counter regalo">
+                <h3>🎁 Ore Regalo</h3>
+                <p>Disponibili: <strong>24</strong>h</p>
+                <p>Usate: <span id="usedRegalo">0</span>h</p>
+                <p>Rimanenti: <span id="remainingRegalo">24</span>h</p>
+            </div>
         </div>
-        <div class="counter regalo">
-            <h3>🎁 Ore Regalo</h3>
-            <p>Disponibili: <strong>24</strong>h</p>
-            <p>Usate: <span id="usedRegalo">0</span>h</p>
-            <p>Rimanenti: <span id="remainingRegalo">24</span>h</p>
-        </div>
-    </section>
+    </aside>
 
     <main id="calendarContainer">
         <!-- 12 mesi generati dinamicamente -->
