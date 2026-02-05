@@ -343,25 +343,36 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 0 10px 10px 10px;
+    }
+
     header {
         flex-direction: column;
-        gap: 15px;
+        gap: 8px;
         text-align: center;
         border-radius: 0;
+        padding: 12px 15px;
     }
 
     header h1 {
-        font-size: 1.5em;
+        font-size: 1.3em;
     }
 
     .header-controls {
         flex-wrap: wrap;
         justify-content: center;
+        gap: 6px;
     }
 
     .header-btn {
+        font-size: 0.85em;
+        padding: 5px 10px;
+    }
+
+    #yearSelector {
         font-size: 0.9em;
-        padding: 6px 12px;
+        padding: 5px 10px;
     }
 
     #calendarContainer {
@@ -370,24 +381,41 @@ header h1 {
 
     #counterPanel {
         flex-direction: column;
-        top: 130px;
+        top: 80px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        gap: 8px;
     }
 
     .counter {
         min-width: unset;
         flex-wrap: wrap;
-        font-size: 0.9em;
-        gap: 12px;
+        font-size: 0.85em;
+        gap: 8px;
+        padding: 10px 12px;
     }
 
     .counter h3 {
-        font-size: 1.1em;
-        width: 100%;
-        margin-bottom: 8px;
+        font-size: 1em;
+        min-width: 40px;
+    }
+
+    .counter label {
+        font-size: 0.9em;
     }
 
     .counter input {
-        width: 60px;
+        width: 50px;
+        font-size: 0.85em;
+        padding: 4px 6px;
+    }
+
+    .counter input[type="text"] {
+        width: 100px;
+    }
+
+    .counter p {
+        font-size: 0.9em;
     }
 }
 
