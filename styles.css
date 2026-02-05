@@ -1,0 +1,404 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 0 20px 20px 20px;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-controls label {
+    font-weight: 500;
+}
+
+#yearSelector {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    background: white;
+    color: #333;
+}
+
+.header-btn {
+    padding: 8px 15px;
+    border: 2px solid white;
+    border-radius: 5px;
+    font-size: 0.95em;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.header-btn:hover {
+    background: white;
+    color: #667eea;
+}
+
+#counterPanel {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 90px;
+    z-index: 90;
+    background: #f5f5f5;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.counter {
+    flex: 1;
+    min-width: 380px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.counter h3 {
+    margin: 0;
+    font-size: 1.2em;
+    min-width: 50px;
+}
+
+.counter.ferie {
+    border-left: 5px solid #4CAF50;
+}
+
+.counter.par {
+    border-left: 5px solid #FF9800;
+}
+
+.counter label {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.counter input {
+    width: 70px;
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95em;
+    margin-left: 8px;
+}
+
+.counter input[type="text"] {
+    width: 140px;
+}
+
+.counter p {
+    margin: 0;
+    font-size: 1em;
+    white-space: nowrap;
+}
+
+.counter span {
+    font-weight: 700;
+    color: #667eea;
+}
+
+#calendarContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.month {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.month-header {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.month-header h2 {
+    color: #667eea;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 5px;
+}
+
+.day-name {
+    text-align: center;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #666;
+    padding: 5px 0;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.day:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.day.empty {
+    cursor: default;
+    background: transparent;
+}
+
+.day.empty:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.day.weekend {
+    background: #ffe0e0;
+}
+
+.day.holiday {
+    background: #ffcccc;
+    font-weight: 700;
+}
+
+.day.today {
+    box-shadow: 0 0 10px blue;
+    font-weight: 700;
+}
+
+.day.has-ferie {
+    border: 3px solid #4CAF50;
+    background: #e8f5e9;
+}
+
+.day.has-par {
+    border: 3px solid #FF9800;
+    background: #fff3e0;
+}
+
+.day.has-ferie.weekend,
+.day.has-par.weekend {
+    background: linear-gradient(135deg, #ffe0e0 50%, #e8f5e9 50%);
+}
+
+.day.has-ferie.holiday,
+.day.has-par.holiday {
+    background: linear-gradient(135deg, #ffcccc 50%, #fff3e0 50%);
+}
+
+#entryModal {
+    border: none;
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+#entryModal::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+#entryModal h2 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    margin: 0;
+    border-radius: 15px 15px 0 0;
+    font-size: 1.3em;
+}
+
+#entryModal form {
+    padding: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input[type="radio"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.form-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.form-actions button[type="submit"] {
+    background: #4CAF50;
+    color: white;
+}
+
+.form-actions button[type="submit"]:hover {
+    background: #45a049;
+}
+
+#deleteBtn {
+    background: #f44336;
+    color: white;
+}
+
+#deleteBtn:hover {
+    background: #da190b;
+}
+
+#closeBtn {
+    background: #999;
+    color: white;
+}
+
+#closeBtn:hover {
+    background: #777;
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        border-radius: 0;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    .header-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .header-btn {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+
+    #calendarContainer {
+        grid-template-columns: 1fr;
+    }
+
+    #counterPanel {
+        flex-direction: column;
+        top: 130px;
+    }
+
+    .counter {
+        min-width: unset;
+        flex-wrap: wrap;
+        font-size: 0.9em;
+        gap: 12px;
+    }
+
+    .counter h3 {
+        font-size: 1.1em;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .counter input {
+        width: 60px;
+    }
+}
+
+@media (min-width: 1400px) {
+    #calendarContainer {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1000px) and (max-width: 1399px) {
+    #calendarContainer {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
