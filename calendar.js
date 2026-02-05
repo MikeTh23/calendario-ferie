@@ -38,6 +38,10 @@ function getDayClass(date, entry) {
             classes.push('has-ferie');
         } else if (entry.type === 'par') {
             classes.push('has-par');
+        } else if (entry.type === 'compleanno') {
+            classes.push('has-compleanno');
+        } else if (entry.type === 'wellbeing') {
+            classes.push('has-wellbeing');
         }
     }
 
@@ -118,9 +122,34 @@ function renderMonth(year, month, entries = {}) {
             const entry = entries[day.dateStr];
             const classes = getDayClass(day.date, entry);
             const title = entry ? `${entry.type.toUpperCase()}: ${entry.hours}h` : '';
+            const dataHours = entry ? entry.hours : '';
+            const dataType = entry ? entry.type : '';
+
+            // Calcola gradiente proporzionale per riempimento
+            let style = '';
+            if (entry && entry.hours) {
+                const percentage = (entry.hours / 8) * 100;
+                let color1, color2;
+
+                if (entry.type === 'ferie') {
+                    color1 = '#4CAF50'; // Verde pieno
+                    color2 = '#e8f5e9'; // Verde chiaro
+                } else if (entry.type === 'par') {
+                    color1 = '#FF9800'; // Arancione pieno
+                    color2 = '#fff3e0'; // Arancione chiaro
+                } else if (entry.type === 'compleanno') {
+                    color1 = '#2196F3'; // Azzurro pieno
+                    color2 = '#e3f2fd'; // Azzurro chiaro
+                } else if (entry.type === 'wellbeing') {
+                    color1 = '#9C27B0'; // Viola pieno
+                    color2 = '#f3e5f5'; // Viola chiaro
+                }
+
+                style = `background: linear-gradient(to top, ${color1} ${percentage}%, ${color2} ${percentage}%);`;
+            }
 
             html += `
-                <div class="${classes}" data-date="${day.dateStr}" title="${title}">
+                <div class="${classes}" data-date="${day.dateStr}" data-hours="${dataHours}" data-type="${dataType}" title="${title}" style="${style}">
                     ${day.dayNumber}
                 </div>
             `;

@@ -146,7 +146,8 @@ function deleteEntry(dateStr) {
 function calculateTotals(year) {
     const totals = {
         ferie: 0,
-        par: 0
+        par: 0,
+        regalo: 0
     };
 
     if (data.years[year] && data.years[year].entries) {
@@ -158,6 +159,8 @@ function calculateTotals(year) {
                 totals.ferie += entry.hours;
             } else if (entry.type === 'par') {
                 totals.par += entry.hours;
+            } else if (entry.type === 'compleanno' || entry.type === 'wellbeing') {
+                totals.regalo += entry.hours;
             }
         }
     }

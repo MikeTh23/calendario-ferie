@@ -13,6 +13,8 @@ let usedFerieSpan;
 let usedPARSpan;
 let remainingFerieSpan;
 let remainingPARSpan;
+let usedRegaloSpan;
+let remainingRegaloSpan;
 let entryModal;
 let entryForm;
 let modalDate;
@@ -44,6 +46,8 @@ async function init() {
     usedPARSpan = document.getElementById('usedPAR');
     remainingFerieSpan = document.getElementById('remainingFerie');
     remainingPARSpan = document.getElementById('remainingPAR');
+    usedRegaloSpan = document.getElementById('usedRegalo');
+    remainingRegaloSpan = document.getElementById('remainingRegalo');
     entryModal = document.getElementById('entryModal');
     entryForm = document.getElementById('entryForm');
     modalDate = document.getElementById('modalDate');
@@ -153,6 +157,28 @@ function setupEventListeners() {
         e.preventDefault();
         entryModal.close();
     });
+
+    // Gestione cambio tipo per compleanno/wellbeing (forza 8 ore)
+    const typeRadios = entryForm.querySelectorAll('input[name="type"]');
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', handleTypeChange);
+    });
+}
+
+/**
+ * Gestisce il cambio del tipo di entry (abilita/disabilita ore per compleanno/wellbeing)
+ */
+function handleTypeChange() {
+    const selectedType = entryForm.querySelector('input[name="type"]:checked').value;
+
+    if (selectedType === 'compleanno' || selectedType === 'wellbeing') {
+        hoursInput.value = '8';
+        hoursInput.readOnly = true;
+        hoursInput.style.background = '#f0f0f0';
+    } else {
+        hoursInput.readOnly = false;
+        hoursInput.style.background = 'white';
+    }
 }
 
 /**
@@ -184,6 +210,9 @@ function handleDayClick(dateStr) {
         deleteBtn.style.display = 'none';
     }
 
+    // Gestisci readonly per compleanno/wellbeing
+    handleTypeChange();
+
     // Apri modal
     entryModal.showModal();
     hoursInput.focus();
@@ -194,12 +223,75 @@ function handleDayClick(dateStr) {
  */
 async function handleEntrySave() {
     const type = entryForm.querySelector('input[name="type"]:checked').value;
-    const hours = parseFloat(hoursInput.value);
+    let hours = parseFloat(hoursInput.value);
 
-    // Validazione
+    // Validazione ore base
     if (isNaN(hours) || hours <= 0 || hours > 24) {
         alert('Inserisci un numero di ore valido (0-24)');
         return;
+    }
+
+    // Validazione: max 8 ore per ferie e PAR
+    if ((type === 'ferie' || type === 'par') && hours > 8) {
+        alert('⚠️ Non puoi inserire più di 8 ore per un singolo giorno!\n\nUna giornata lavorativa standard è di 8 ore.');
+        return;
+    }
+
+    // Validazione: verifica se ci sono già altre entry nello stesso giorno (tipo diverso)
+    const currentEntry = getEntry(currentSelectedDate);
+
+    if (currentEntry && currentEntry.type !== type) {
+        const currentHours = currentEntry.hours;
+        if (hours + currentHours > 8) {
+            const remaining = 8 - currentHours;
+            alert(`⚠️ Hai già inserito ${currentHours}h di ${currentEntry.type.toUpperCase()} in questo giorno!\n\nPuoi inserire al massimo ${remaining}h aggiuntive (totale giornaliero: 8h).`);
+            return;
+        }
+    }
+
+    // Validazioni speciali per compleanno e wellbeing
+    if (type === 'compleanno' || type === 'wellbeing') {
+        // Forza sempre 8 ore
+        if (hours !== 8) {
+            alert(`${type === 'compleanno' ? 'Compleanno' : 'Well Being'} deve essere una giornata intera (8 ore)`);
+            hoursInput.value = '8';
+            return;
+        }
+
+        // Calcola totali attuali (escludendo l'entry corrente se stiamo modificando)
+        const currentYear = getSettings().currentYear;
+        const totals = calculateTotals(currentYear);
+        const currentEntry = getEntry(currentSelectedDate);
+
+        let currentTypeHours = 0;
+        if (type === 'compleanno') {
+            currentTypeHours = totals.regalo;
+            // Sottrai le ore dell'entry corrente se è dello stesso tipo
+            if (currentEntry && currentEntry.type === 'compleanno') {
+                currentTypeHours -= currentEntry.hours;
+            }
+        } else if (type === 'wellbeing') {
+            // Calcola solo wellbeing (escludendo compleanno)
+            const entries = getEntriesForYear(currentYear);
+            for (const dateStr in entries) {
+                const entry = entries[dateStr];
+                if (entry.type === 'wellbeing' && dateStr !== currentSelectedDate) {
+                    currentTypeHours += entry.hours;
+                }
+            }
+        }
+
+        // Verifica limiti
+        if (type === 'compleanno' && currentTypeHours + hours > 8) {
+            alert('⚠️ Hai già usato il giorno di compleanno per quest\'anno!\n\nPuoi inserire solo 1 giorno (8 ore) di compleanno per anno.');
+            return;
+        }
+
+        if (type === 'wellbeing' && currentTypeHours + hours > 16) {
+            const remaining = 16 - currentTypeHours;
+            alert(`⚠️ Hai già usato ${currentTypeHours / 8} giorn${currentTypeHours === 8 ? 'o' : 'i'} di Well Being!\n\nPuoi inserire solo 2 giorni (16 ore) di Well Being per anno.\nOre rimanenti: ${remaining}h`);
+            return;
+        }
     }
 
     try {
@@ -286,17 +378,21 @@ function updateCounters() {
     // Ore usate
     usedFerieSpan.textContent = totals.ferie.toFixed(1);
     usedPARSpan.textContent = totals.par.toFixed(1);
+    usedRegaloSpan.textContent = totals.regalo.toFixed(1);
 
     // Ore rimanenti
     const remainingFerie = availableHours.availableVacationHours - totals.ferie;
     const remainingPAR = availableHours.availablePARHours - totals.par;
+    const remainingRegalo = 24 - totals.regalo;
 
     remainingFerieSpan.textContent = remainingFerie.toFixed(1);
     remainingPARSpan.textContent = remainingPAR.toFixed(1);
+    remainingRegaloSpan.textContent = remainingRegalo.toFixed(1);
 
     // Cambia colore se negativo
     remainingFerieSpan.style.color = remainingFerie < 0 ? '#f44336' : '#667eea';
     remainingPARSpan.style.color = remainingPAR < 0 ? '#f44336' : '#667eea';
+    remainingRegaloSpan.style.color = remainingRegalo < 0 ? '#f44336' : '#667eea';
 }
 
 /**
