@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Calendario Ferie e PAR</title>
-    <link rel="stylesheet" href="styles.css?v=2.1">
+    <link rel="stylesheet" href="styles.css?v=2.2">
 </head>
 <body>
     <header>
@@ -15,6 +15,7 @@
         <h1>📅 Calendario Ferie e PAR<span id="userNameDisplay"></span></h1>
         <div class="header-controls">
             <input type="text" id="userName" placeholder="Nome" maxlength="30" class="header-input">
+            <button id="printBtn" class="header-btn" title="Stampa o salva come PDF">🖨️ PDF</button>
             <button id="exportBtn" class="header-btn" title="Esporta backup JSON">📥 Esporta</button>
             <button id="importBtn" class="header-btn" title="Importa dati da JSON">📤 Importa</button>
             <label for="yearSelector">Anno:</label>
@@ -24,6 +25,31 @@
 
     <!-- Input file nascosto per l'import -->
     <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <!-- Header per stampa (visibile solo in PDF/stampa) -->
+    <div id="printHeader" class="print-only">
+        <h1>📅 Calendario Ferie e PAR <span id="printYear"></span> - <span id="printUserName"></span></h1>
+        <div class="print-counters">
+            <div class="print-counter ferie">
+                <strong>Ferie:</strong>
+                <span>Disponibili: <span id="printAvailableFerie">0</span>h</span>
+                <span>Usate: <span id="printUsedFerie">0</span>h</span>
+                <span>Rimanenti: <span id="printRemainingFerie">0</span>h</span>
+            </div>
+            <div class="print-counter par">
+                <strong>PAR:</strong>
+                <span>Disponibili: <span id="printAvailablePAR">0</span>h</span>
+                <span>Usate: <span id="printUsedPAR">0</span>h</span>
+                <span>Rimanenti: <span id="printRemainingPAR">0</span>h</span>
+            </div>
+            <div class="print-counter regalo">
+                <strong>🎁 Ore Regalo:</strong>
+                <span>Disponibili: 24h</span>
+                <span>Usate: <span id="printUsedRegalo">0</span>h</span>
+                <span>Rimanenti: <span id="printRemainingRegalo">24</span>h</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Sidebar laterale con contatori -->
     <aside id="sidebar" class="sidebar">
@@ -78,9 +104,9 @@
         </form>
     </dialog>
 
-    <script src="easter.js?v=2.1"></script>
-    <script src="calendar.js?v=2.1"></script>
-    <script src="storage.js?v=2.1"></script>
-    <script src="app.js?v=2.1"></script>
+    <script src="easter.js?v=2.2"></script>
+    <script src="calendar.js?v=2.2"></script>
+    <script src="storage.js?v=2.2"></script>
+    <script src="app.js?v=2.2"></script>
 </body>
 </html>

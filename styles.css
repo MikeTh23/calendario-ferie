@@ -521,3 +521,149 @@ header h1 {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* Stili per stampa/PDF */
+.print-only {
+    display: none;
+}
+
+@media print {
+    /* Nascondi elementi non necessari in stampa */
+    header,
+    .sidebar,
+    #entryModal,
+    button {
+        display: none !important;
+    }
+
+    /* Mostra header di stampa */
+    .print-only {
+        display: block !important;
+    }
+
+    #printHeader {
+        margin-bottom: 20px;
+        padding: 20px;
+        border-bottom: 3px solid #667eea;
+    }
+
+    #printHeader h1 {
+        color: #667eea;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .print-counters {
+        display: flex;
+        gap: 20px;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+
+    .print-counter {
+        flex: 1;
+        min-width: 200px;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 0.9em;
+    }
+
+    .print-counter.ferie {
+        border-left: 5px solid #4CAF50;
+    }
+
+    .print-counter.par {
+        border-left: 5px solid #FF9800;
+    }
+
+    .print-counter.regalo {
+        border-left: 5px solid #9C27B0;
+    }
+
+    .print-counter strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.1em;
+        color: #333;
+    }
+
+    .print-counter span {
+        display: block;
+        margin: 4px 0;
+        color: #666;
+    }
+
+    /* Ottimizza calendario per stampa */
+    body {
+        background: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    #calendarContainer {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 15px;
+        page-break-inside: avoid;
+    }
+
+    .month {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+
+    .month-header {
+        border-bottom: 2px solid #667eea;
+    }
+
+    .day {
+        border: 1px solid #ddd;
+        font-size: 0.9em;
+    }
+
+    /* Assicura che i colori siano visibili in stampa */
+    .day.weekend {
+        background: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.holiday {
+        background: #e0e0e0 !important;
+        font-weight: 700;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-ferie {
+        border: 2px solid #4CAF50 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-par {
+        border: 2px solid #FF9800 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-compleanno {
+        border: 2px solid #2196F3 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-wellbeing {
+        border: 2px solid #9C27B0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Mantieni i colori di sfondo proporzionali */
+    .day[style] {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

@@ -24,6 +24,7 @@ let closeBtn;
 let exportBtn;
 let importBtn;
 let importFileInput;
+let printBtn;
 let sidebarToggle;
 let sidebar;
 let sidebarClose;
@@ -60,6 +61,7 @@ async function init() {
     exportBtn = document.getElementById('exportBtn');
     importBtn = document.getElementById('importBtn');
     importFileInput = document.getElementById('importFileInput');
+    printBtn = document.getElementById('printBtn');
     sidebarToggle = document.getElementById('sidebarToggle');
     sidebar = document.getElementById('sidebar');
     sidebarClose = document.getElementById('sidebarClose');
@@ -141,8 +143,9 @@ function setupEventListeners() {
     sidebarToggle.addEventListener('click', toggleSidebar);
     sidebarClose.addEventListener('click', toggleSidebar);
 
-    // Export/Import
+    // Export/Import/Print
     exportBtn.addEventListener('click', handleExport);
+    printBtn.addEventListener('click', handlePrint);
     importBtn.addEventListener('click', () => {
         importFileInput.click();
     });
@@ -510,6 +513,48 @@ async function handleImport(event) {
     } finally {
         // Reset input file per permettere lo stesso file
         importFileInput.value = '';
+    }
+}
+
+/**
+ * Gestisce la stampa/esportazione PDF
+ */
+function handlePrint() {
+    try {
+        const settings = getSettings();
+        const currentYear = settings.currentYear;
+        const userName = settings.userName || 'Utente';
+        const totals = calculateTotals(currentYear);
+        const availableHours = getAvailableHours(currentYear);
+
+        // Popola dati nell'header di stampa
+        document.getElementById('printYear').textContent = currentYear;
+        document.getElementById('printUserName').textContent = userName;
+
+        // Ferie
+        document.getElementById('printAvailableFerie').textContent = availableHours.availableVacationHours;
+        document.getElementById('printUsedFerie').textContent = totals.ferie.toFixed(1);
+        const remainingFerie = availableHours.availableVacationHours - totals.ferie;
+        document.getElementById('printRemainingFerie').textContent = remainingFerie.toFixed(1);
+
+        // PAR
+        document.getElementById('printAvailablePAR').textContent = availableHours.availablePARHours;
+        document.getElementById('printUsedPAR').textContent = totals.par.toFixed(1);
+        const remainingPAR = availableHours.availablePARHours - totals.par;
+        document.getElementById('printRemainingPAR').textContent = remainingPAR.toFixed(1);
+
+        // Ore Regalo
+        document.getElementById('printUsedRegalo').textContent = totals.regalo.toFixed(1);
+        const remainingRegalo = 24 - totals.regalo;
+        document.getElementById('printRemainingRegalo').textContent = remainingRegalo.toFixed(1);
+
+        // Chiudi sidebar se aperta
+        sidebar.classList.remove('open');
+
+        // Apri dialog di stampa
+        window.print();
+    } catch (error) {
+        alert('Errore durante la preparazione della stampa: ' + error.message);
     }
 }
 
