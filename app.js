@@ -284,14 +284,30 @@ async function handleEntrySave() {
                 currentTypeHours -= currentEntry.hours;
             }
         } else if (type === 'wellbeing') {
-            // Calcola solo wellbeing (escludendo compleanno)
+            // Determina il semestre della data corrente
+            const currentDate = new Date(currentSelectedDate + 'T00:00:00');
+            const currentMonth = currentDate.getMonth() + 1; // 1-12
+            const currentSemester = currentMonth <= 6 ? 1 : 2;
+
+            // Calcola ore wellbeing per semestre (1° sem: Gen-Giu, 2° sem: Lug-Dic)
             const entries = getEntriesForYear(currentYear);
+            let semesterHours = 0;
+
             for (const dateStr in entries) {
                 const entry = entries[dateStr];
                 if (entry.type === 'wellbeing' && dateStr !== currentSelectedDate) {
-                    currentTypeHours += entry.hours;
+                    const entryDate = new Date(dateStr + 'T00:00:00');
+                    const entryMonth = entryDate.getMonth() + 1;
+                    const entrySemester = entryMonth <= 6 ? 1 : 2;
+
+                    // Conta solo le ore dello stesso semestre
+                    if (entrySemester === currentSemester) {
+                        semesterHours += entry.hours;
+                    }
                 }
             }
+
+            currentTypeHours = semesterHours;
         }
 
         // Verifica limiti
@@ -300,9 +316,12 @@ async function handleEntrySave() {
             return;
         }
 
-        if (type === 'wellbeing' && currentTypeHours + hours > 16) {
-            const remaining = 16 - currentTypeHours;
-            alert(`⚠️ Hai già usato ${currentTypeHours / 8} giorn${currentTypeHours === 8 ? 'o' : 'i'} di Well Being!\n\nPuoi inserire solo 2 giorni (16 ore) di Well Being per anno.\nOre rimanenti: ${remaining}h`);
+        if (type === 'wellbeing' && currentTypeHours + hours > 8) {
+            const currentDate = new Date(currentSelectedDate + 'T00:00:00');
+            const currentMonth = currentDate.getMonth() + 1;
+            const semesterName = currentMonth <= 6 ? '1° semestre (Gennaio-Giugno)' : '2° semestre (Luglio-Dicembre)';
+
+            alert(`⚠️ Hai già usato 1 giorno di Well Being nel ${semesterName}!\n\nPuoi inserire massimo 1 giorno (8 ore) di Well Being per semestre:\n• 1° semestre: Gennaio-Giugno\n• 2° semestre: Luglio-Dicembre`);
             return;
         }
     }
