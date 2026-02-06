@@ -42,6 +42,10 @@ function getDayClass(date, entry) {
             classes.push('has-compleanno');
         } else if (entry.type === 'wellbeing') {
             classes.push('has-wellbeing');
+        } else if (entry.type === 'volontariato') {
+            classes.push('has-volontariato');
+        } else if (entry.type === 'visiteMediche') {
+            classes.push('has-visite-mediche');
         }
     }
 
@@ -128,7 +132,9 @@ function renderMonth(year, month, entries = {}) {
             // Calcola gradiente proporzionale per riempimento
             let style = '';
             if (entry && entry.hours) {
-                const percentage = (entry.hours / 8) * 100;
+                // Calcola percentuale in base al massimo di ore per tipo
+                const maxHours = entry.type === 'visiteMediche' ? 3 : 8;
+                const percentage = (entry.hours / maxHours) * 100;
                 let color1, color2;
 
                 if (entry.type === 'ferie') {
@@ -141,8 +147,14 @@ function renderMonth(year, month, entries = {}) {
                     color1 = '#2196F3'; // Azzurro pieno
                     color2 = '#e3f2fd'; // Azzurro chiaro
                 } else if (entry.type === 'wellbeing') {
-                    color1 = '#9C27B0'; // Viola pieno
-                    color2 = '#f3e5f5'; // Viola chiaro
+                    color1 = '#9595FF'; // Viola chiaro personalizzato
+                    color2 = '#ede7f6'; // Viola chiaro
+                } else if (entry.type === 'volontariato') {
+                    color1 = '#BC7A7A'; // Rosa terracotta pieno
+                    color2 = '#fceaea'; // Rosa chiaro
+                } else if (entry.type === 'visiteMediche') {
+                    color1 = '#00BCD4'; // Cyan pieno
+                    color2 = '#e0f7fa'; // Cyan chiaro
                 }
 
                 style = `background: linear-gradient(to top, ${color1} ${percentage}%, ${color2} ${percentage}%);`;

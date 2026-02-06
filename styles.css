@@ -159,6 +159,63 @@ header h1 {
     gap: 20px;
 }
 
+.user-id-section {
+    background: #f0f7ff;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 5px solid #667eea;
+}
+
+.user-id-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.1em;
+    color: #667eea;
+}
+
+.user-id-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.user-id-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.user-id-value {
+    font-family: 'Courier New', monospace;
+    color: #667eea;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+.user-id-value.not-set {
+    color: #999;
+    font-style: italic;
+    font-family: inherit;
+}
+
+.set-id-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.set-id-btn:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+}
+
 .counter {
     background: #f9f9f9;
     padding: 15px;
@@ -184,7 +241,15 @@ header h1 {
 }
 
 .counter.regalo {
-    border-left: 5px solid #9C27B0;
+    border-left: 5px solid #9595FF;
+}
+
+.counter.volontariato {
+    border-left: 5px solid #BC7A7A;
+}
+
+.counter.visite-mediche {
+    border-left: 5px solid #00BCD4;
 }
 
 .counter label {
@@ -213,6 +278,201 @@ header h1 {
 .counter span {
     font-weight: 700;
     color: #667eea;
+}
+
+.counter .info-text {
+    font-size: 0.85em;
+    color: #999;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Vista Riepilogo Anno */
+.riepilogo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    z-index: 2000;
+    overflow-y: auto;
+    transition: opacity 0.3s ease;
+}
+
+.riepilogo-overlay.hidden {
+    display: none;
+}
+
+.riepilogo-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.riepilogo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.riepilogo-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.riepilogo-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.riepilogo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.riepilogo-totals {
+    display: none; /* Nascosto a video, visibile solo in stampa */
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 2px solid #333;
+}
+
+.legend-color.ferie {
+    background: #4CAF50;
+}
+
+.legend-color.par {
+    background: #FF9800;
+}
+
+.legend-color.compleanno {
+    background: #2196F3;
+}
+
+.legend-color.wellbeing {
+    background: #9595FF;
+}
+
+.legend-color.volontariato {
+    background: #BC7A7A;
+}
+
+.legend-color.visite-mediche {
+    background: #00BCD4;
+}
+
+.legend-color.weekend {
+    background: #ffe0e0;
+    border-color: #ccc;
+}
+
+.legend-color.holiday {
+    background: #ff9999;
+    border-color: #999;
+}
+
+.riepilogo-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.riepilogo-month {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.month-label {
+    font-weight: 700;
+    font-size: 1em;
+    width: 90px;
+    text-align: right;
+    color: #667eea;
+    flex-shrink: 0;
+}
+
+.days-row {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+}
+
+.day-cell {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.day-cell.empty {
+    background: transparent;
+    border: none;
+}
+
+.day-cell.weekend {
+    background: #ffe0e0;
+}
+
+.day-cell.holiday {
+    background: #ff9999;
+    font-weight: 700;
+}
+
+.day-cell.has-ferie {
+    border: 2px solid #4CAF50;
+}
+
+.day-cell.has-par {
+    border: 2px solid #FF9800;
+}
+
+.day-cell.has-compleanno {
+    border: 2px solid #2196F3;
+}
+
+.day-cell.has-wellbeing {
+    border: 2px solid #9595FF;
+}
+
+.day-cell.has-volontariato {
+    border: 2px solid #BC7A7A;
+}
+
+.day-cell.has-visite-mediche {
+    border: 2px solid #00BCD4;
 }
 
 #calendarContainer {
@@ -321,8 +581,18 @@ header h1 {
 }
 
 .day.has-wellbeing {
-    border: 3px solid #9C27B0;
-    background: #f3e5f5;
+    border: 3px solid #9595FF;
+    background: #ede7f6;
+}
+
+.day.has-volontariato {
+    border: 3px solid #BC7A7A;
+    background: #fceaea;
+}
+
+.day.has-visite-mediche {
+    border: 3px solid #00BCD4;
+    background: #e0f7fa;
 }
 
 .day.has-ferie.weekend,
@@ -339,14 +609,100 @@ header h1 {
     background: linear-gradient(135deg, #ff9999 50%, #fff3e0 50%);
 }
 
-#entryModal {
+#entryModal,
+#userIdModal {
     border: none;
     border-radius: 15px;
     padding: 0;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
     margin: auto;
+}
+
+#userIdModal h2 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    margin: 0;
+    border-radius: 15px 15px 0 0;
+    font-size: 1.3em;
+}
+
+#userIdModal .modal-content {
+    padding: 25px;
+}
+
+#userIdModal .modal-description {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    color: #555;
+}
+
+#userIdModal .modal-example {
+    background: #f9f9f9;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 3px solid #667eea;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+#userIdModal .form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+#userIdModal .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+#userIdModal .form-group input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 45px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.2s;
+}
+
+#userIdModal .form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 5px;
+    top: 38px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px 10px;
+}
+
+#userIdModal .modal-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 5px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    color: #856404;
+}
+
+#userIdModal .modal-warning ul {
+    margin: 8px 0 0 20px;
+    padding: 0;
+}
+
+#userIdModal .modal-warning li {
+    margin: 5px 0;
 }
 
 #entryModal::backdrop {
@@ -528,12 +884,183 @@ header h1 {
 }
 
 @media print {
-    /* Nascondi elementi non necessari in stampa */
+    /* Imposta orientamento orizzontale */
+    @page {
+        size: landscape;
+        margin: 10mm;
+    }
+
+    /* Nascondi elementi UI sempre */
     header,
     .sidebar,
     #entryModal,
     button {
         display: none !important;
+    }
+
+    /* DEFAULT: Stampa calendario normale */
+    #calendarContainer {
+        display: grid !important;
+    }
+
+    #printHeader {
+        display: block !important;
+    }
+
+    .riepilogo-overlay {
+        display: none !important;
+    }
+
+    /* QUANDO RIEPILOGO È APERTO: Stampa riepilogo */
+    body.riepilogo-open #calendarContainer,
+    body.riepilogo-open #printHeader {
+        display: none !important;
+    }
+
+    body.riepilogo-open .riepilogo-overlay {
+        display: block !important;
+        position: relative;
+        height: auto;
+    }
+
+    /* Mostra totalizzatori nel riepilogo quando stampato */
+    .riepilogo-overlay:not(.hidden) .riepilogo-totals {
+        display: flex !important;
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px 15px;
+        background: #f9f9f9;
+        margin-bottom: 10px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .riepilogo-total-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 5px 10px;
+        border-left: 4px solid #ddd;
+        font-size: 0.8em;
+    }
+
+    .riepilogo-total-row.ferie {
+        border-left-color: #4CAF50;
+    }
+
+    .riepilogo-total-row.par {
+        border-left-color: #FF9800;
+    }
+
+    .riepilogo-total-row.regalo {
+        border-left-color: #9595FF;
+    }
+
+    .riepilogo-total-row.volontariato {
+        border-left-color: #BC7A7A;
+    }
+
+    .riepilogo-total-row.visite-mediche {
+        border-left-color: #00BCD4;
+    }
+
+    .riepilogo-total-row strong {
+        display: inline;
+        margin-right: 10px;
+        font-size: 0.95em;
+        color: #333;
+    }
+
+    .riepilogo-total-row span {
+        display: inline;
+        margin-right: 8px;
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .riepilogo-container {
+        padding: 5mm;
+        max-width: none;
+    }
+
+    .riepilogo-header {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 8px 15px;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+    }
+
+    .riepilogo-header h2 {
+        font-size: 1.2em;
+    }
+
+    .riepilogo-actions {
+        display: none !important;
+    }
+
+    .riepilogo-legend {
+        background: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 8px;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    .legend-item {
+        font-size: 0.75em;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+    }
+
+    .legend-color {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .riepilogo-content {
+        padding: 5px;
+        box-shadow: none;
+    }
+
+    .riepilogo-month {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 4px;
+        padding-bottom: 4px;
+        gap: 10px;
+    }
+
+    .month-label {
+        font-size: 0.85em;
+        width: 75px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .days-row {
+        gap: 1px;
+    }
+
+    .day-cell {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65em;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day-cell.weekend {
+        background: #ffe0e0 !important;
+    }
+
+    .day-cell.holiday {
+        background: #ff9999 !important;
     }
 
     /* Mostra header di stampa */
@@ -542,57 +1069,68 @@ header h1 {
     }
 
     #printHeader {
-        margin-bottom: 20px;
-        padding: 20px;
-        border-bottom: 3px solid #667eea;
+        margin-bottom: 10px;
+        padding: 10px 15px;
+        border-bottom: 2px solid #667eea;
     }
 
     #printHeader h1 {
         color: #667eea;
-        font-size: 1.5em;
-        margin-bottom: 15px;
+        font-size: 1.2em;
+        margin-bottom: 8px;
         text-align: center;
     }
 
     .print-counters {
         display: flex;
-        gap: 20px;
-        justify-content: space-around;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 5px;
     }
 
     .print-counter {
-        flex: 1;
-        min-width: 200px;
-        padding: 10px;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 5px 10px;
+        border: none;
+        border-left: 4px solid #ddd;
+        border-radius: 0;
+        font-size: 0.8em;
     }
 
     .print-counter.ferie {
-        border-left: 5px solid #4CAF50;
+        border-left-color: #4CAF50;
     }
 
     .print-counter.par {
-        border-left: 5px solid #FF9800;
+        border-left-color: #FF9800;
     }
 
     .print-counter.regalo {
-        border-left: 5px solid #9C27B0;
+        border-left-color: #9595FF;
+    }
+
+    .print-counter.volontariato {
+        border-left-color: #BC7A7A;
+    }
+
+    .print-counter.visite-mediche {
+        border-left-color: #00BCD4;
     }
 
     .print-counter strong {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 1.1em;
+        display: inline;
+        margin: 0;
+        margin-right: 10px;
+        font-size: 0.95em;
         color: #333;
     }
 
     .print-counter span {
-        display: block;
-        margin: 4px 0;
+        display: inline;
+        margin: 0 8px 0 0;
         color: #666;
+        font-size: 0.9em;
     }
 
     /* Ottimizza calendario per stampa */
@@ -625,13 +1163,13 @@ header h1 {
 
     /* Assicura che i colori siano visibili in stampa */
     .day.weekend {
-        background: #f0f0f0 !important;
+        background: #ffe0e0 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
     .day.holiday {
-        background: #e0e0e0 !important;
+        background: #ff9999 !important;
         font-weight: 700;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
@@ -656,7 +1194,19 @@ header h1 {
     }
 
     .day.has-wellbeing {
-        border: 2px solid #9C27B0 !important;
+        border: 2px solid #9595FF !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-volontariato {
+        border: 2px solid #BC7A7A !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .day.has-visite-mediche {
+        border: 2px solid #00BCD4 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }

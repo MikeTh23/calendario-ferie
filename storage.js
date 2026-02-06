@@ -147,7 +147,9 @@ function calculateTotals(year) {
     const totals = {
         ferie: 0,
         par: 0,
-        regalo: 0
+        regalo: 0,
+        volontariato: 0,
+        visiteMediche: 0
     };
 
     if (data.years[year] && data.years[year].entries) {
@@ -161,6 +163,10 @@ function calculateTotals(year) {
                 totals.par += entry.hours;
             } else if (entry.type === 'compleanno' || entry.type === 'wellbeing') {
                 totals.regalo += entry.hours;
+            } else if (entry.type === 'volontariato') {
+                totals.volontariato += entry.hours;
+            } else if (entry.type === 'visiteMediche') {
+                totals.visiteMediche += entry.hours;
             }
         }
     }
@@ -285,7 +291,8 @@ function clearAllData() {
         data = {
             settings: {
                 currentYear: new Date().getFullYear(),
-                userName: ''
+                userName: '',
+                userId: null
             },
             years: {}
         };
@@ -294,4 +301,57 @@ function clearAllData() {
         return true;
     }
     return false;
+}
+
+/**
+ * Genera ID utente da passphrase usando SHA-256
+ * @param {string} passphrase - Frase segreta dell'utente
+ * @returns {Promise<string>} Hash SHA-256 in formato esadecimale
+ */
+async function generateUserId(passphrase) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(passphrase);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+/**
+ * Imposta l'ID utente basato su passphrase
+ * @param {string} passphrase - Frase segreta dell'utente
+ * @returns {Promise<string>} ID generato
+ */
+async function setUserId(passphrase) {
+    const userId = await generateUserId(passphrase);
+    updateSettings({ userId });
+    return userId;
+}
+
+/**
+ * Ottiene l'ID utente corrente
+ * @returns {string|null} ID utente o null se non impostato
+ */
+function getUserId() {
+    return data.settings.userId || null;
+}
+
+/**
+ * Esporta solo l'anno corrente come JSON
+ * @param {number} year - Anno da esportare
+ * @returns {string} Dati dell'anno in formato JSON
+ */
+function exportYearToJSON(year) {
+    ensureYearExists(year);
+
+    const yearData = {
+        userName: data.settings.userName || '',
+        userId: data.settings.userId || null,
+        year: year,
+        availableVacationHours: data.years[year].availableVacationHours,
+        availablePARHours: data.years[year].availablePARHours,
+        entries: data.years[year].entries || {}
+    };
+
+    return JSON.stringify(yearData, null, 2);
 }

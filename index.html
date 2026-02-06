@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Calendario Ferie e PAR</title>
-    <link rel="stylesheet" href="styles.css?v=2.3">
+    <link rel="stylesheet" href="styles.css?v=3.6">
 </head>
 <body>
     <header>
@@ -15,6 +15,7 @@
         <h1>📅 Calendario Ferie e PAR<span id="userNameDisplay"></span></h1>
         <div class="header-controls">
             <input type="text" id="userName" placeholder="Nome" maxlength="30" class="header-input">
+            <button id="riepilogoBtn" class="header-btn" title="Vista riepilogo anno">📊 Riepilogo</button>
             <button id="printBtn" class="header-btn" title="Stampa o salva come PDF">🖨️ PDF</button>
             <button id="exportBtn" class="header-btn" title="Esporta backup JSON">📥 Esporta</button>
             <button id="importBtn" class="header-btn" title="Importa dati da JSON">📤 Importa</button>
@@ -48,6 +49,16 @@
                 <span>Usate: <span id="printUsedRegalo">0</span>h</span>
                 <span>Rimanenti: <span id="printRemainingRegalo">24</span>h</span>
             </div>
+            <div class="print-counter volontariato">
+                <strong>🤝 Volontariato:</strong>
+                <span>Disponibili: 24h</span>
+                <span>Usate: <span id="printUsedVolontariato">0</span>h</span>
+                <span>Rimanenti: <span id="printRemainingVolontariato">24</span>h</span>
+            </div>
+            <div class="print-counter visite-mediche">
+                <strong>🏥 Visite Mediche:</strong>
+                <span>Usate: <span id="printUsedVisiteMediche">0</span>h</span>
+            </div>
         </div>
     </div>
 
@@ -58,6 +69,14 @@
             <button id="sidebarClose" class="sidebar-close" title="Chiudi">✕</button>
         </div>
         <div class="sidebar-content">
+            <div class="user-id-section">
+                <h3>👤 Identificativo</h3>
+                <div class="user-id-info">
+                    <span class="user-id-label">ID:</span>
+                    <span id="userIdDisplay" class="user-id-value">Non impostato</span>
+                </div>
+                <button id="setUserIdBtn" class="set-id-btn">🔐 Imposta Chiave</button>
+            </div>
             <div class="counter ferie">
                 <h3>Ferie</h3>
                 <label>Disponibili: <input type="number" id="availableFerie" min="0" step="8"></label>
@@ -76,6 +95,17 @@
                 <p>Usate: <span id="usedRegalo">0</span>h</p>
                 <p>Rimanenti: <span id="remainingRegalo">24</span>h</p>
             </div>
+            <div class="counter volontariato">
+                <h3>🤝 Volontariato</h3>
+                <p>Disponibili: <strong>24</strong>h</p>
+                <p>Usate: <span id="usedVolontariato">0</span>h</p>
+                <p>Rimanenti: <span id="remainingVolontariato">24</span>h</p>
+            </div>
+            <div class="counter visite-mediche">
+                <h3>🏥 Visite Mediche</h3>
+                <p>Usate: <span id="usedVisiteMediche">0</span>h</p>
+                <p class="info-text">Max 3h al giorno</p>
+            </div>
         </div>
     </aside>
 
@@ -91,6 +121,8 @@
                 <label><input type="radio" name="type" value="par"> PAR</label>
                 <label><input type="radio" name="type" value="compleanno"> 🎂 Compleanno</label>
                 <label><input type="radio" name="type" value="wellbeing"> 🧘 Well Being</label>
+                <label><input type="radio" name="type" value="volontariato"> 🤝 Volontariato</label>
+                <label><input type="radio" name="type" value="visiteMediche"> 🏥 Visite Mediche</label>
             </div>
             <div class="form-group">
                 <label for="hoursInput">Ore:</label>
@@ -104,9 +136,97 @@
         </form>
     </dialog>
 
-    <script src="easter.js?v=2.3"></script>
-    <script src="calendar.js?v=2.3"></script>
-    <script src="storage.js?v=2.3"></script>
-    <script src="app.js?v=2.3"></script>
+    <!-- Dialog Chiave Personale -->
+    <dialog id="userIdModal">
+        <h2>🔐 Imposta Chiave Personale</h2>
+        <div class="modal-content">
+            <p class="modal-description">
+                Crea una <strong>frase segreta personale</strong> che servirà come tuo identificativo univoco.
+            </p>
+            <div class="modal-example">
+                <strong>Esempio:</strong><br>
+                "ilmiogattosichiamafuffi2024"
+            </div>
+            <div class="form-group">
+                <label for="passphraseInput">Chiave Personale:</label>
+                <input type="password" id="passphraseInput" placeholder="Inserisci la tua frase segreta" autocomplete="off" required>
+                <button type="button" id="togglePassphraseBtn" class="toggle-password">👁️</button>
+            </div>
+            <div class="modal-warning">
+                ⚠️ <strong>IMPORTANTE:</strong>
+                <ul>
+                    <li>Usa una frase lunga e memorabile</li>
+                    <li><strong>Ricordala!</strong> Non può essere recuperata</li>
+                    <li>Nessun altro deve conoscerla</li>
+                </ul>
+            </div>
+            <div class="form-actions">
+                <button type="button" id="confirmUserIdBtn">Conferma</button>
+                <button type="button" id="cancelUserIdBtn">Annulla</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Vista Riepilogo Anno -->
+    <div id="riepilogoView" class="riepilogo-overlay hidden">
+        <div class="riepilogo-container">
+            <div class="riepilogo-header">
+                <h2>📊 Riepilogo Anno <span id="riepilogoYear"></span> - <span id="riepilogoUserName"></span></h2>
+                <div class="riepilogo-actions">
+                    <button id="exportYearBtn" class="header-btn">📥 Esporta Anno</button>
+                    <button id="printRiepilogoBtn" class="header-btn">🖨️ Stampa</button>
+                    <button id="closeRiepilogoBtn" class="header-btn">✕ Chiudi</button>
+                </div>
+            </div>
+            <div class="riepilogo-legend">
+                <div class="legend-item"><span class="legend-color ferie"></span> Ferie</div>
+                <div class="legend-item"><span class="legend-color par"></span> PAR</div>
+                <div class="legend-item"><span class="legend-color compleanno"></span> Compleanno</div>
+                <div class="legend-item"><span class="legend-color wellbeing"></span> Well Being</div>
+                <div class="legend-item"><span class="legend-color volontariato"></span> Volontariato</div>
+                <div class="legend-item"><span class="legend-color visite-mediche"></span> Visite Mediche</div>
+                <div class="legend-item"><span class="legend-color weekend"></span> Weekend</div>
+                <div class="legend-item"><span class="legend-color holiday"></span> Festività</div>
+            </div>
+            <div class="riepilogo-totals print-only">
+                <div class="riepilogo-total-row ferie">
+                    <strong>Ferie:</strong>
+                    <span>Disponibili: <span id="riepilogoAvailableFerie">0</span>h</span>
+                    <span>Usate: <span id="riepilogoUsedFerie">0</span>h</span>
+                    <span>Rimanenti: <span id="riepilogoRemainingFerie">0</span>h</span>
+                </div>
+                <div class="riepilogo-total-row par">
+                    <strong>PAR:</strong>
+                    <span>Disponibili: <span id="riepilogoAvailablePAR">0</span>h</span>
+                    <span>Usate: <span id="riepilogoUsedPAR">0</span>h</span>
+                    <span>Rimanenti: <span id="riepilogoRemainingPAR">0</span>h</span>
+                </div>
+                <div class="riepilogo-total-row regalo">
+                    <strong>🎁 Ore Regalo:</strong>
+                    <span>Disponibili: 24h</span>
+                    <span>Usate: <span id="riepilogoUsedRegalo">0</span>h</span>
+                    <span>Rimanenti: <span id="riepilogoRemainingRegalo">24</span>h</span>
+                </div>
+                <div class="riepilogo-total-row volontariato">
+                    <strong>🤝 Volontariato:</strong>
+                    <span>Disponibili: 24h</span>
+                    <span>Usate: <span id="riepilogoUsedVolontariato">0</span>h</span>
+                    <span>Rimanenti: <span id="riepilogoRemainingVolontariato">24</span>h</span>
+                </div>
+                <div class="riepilogo-total-row visite-mediche">
+                    <strong>🏥 Visite Mediche:</strong>
+                    <span>Usate: <span id="riepilogoUsedVisiteMediche">0</span>h</span>
+                </div>
+            </div>
+            <div id="riepilogoContent" class="riepilogo-content">
+                <!-- Contenuto generato dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="easter.js?v=3.6"></script>
+    <script src="calendar.js?v=3.6"></script>
+    <script src="storage.js?v=3.6"></script>
+    <script src="app.js?v=3.6"></script>
 </body>
 </html>

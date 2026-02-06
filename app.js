@@ -15,6 +15,9 @@ let remainingFerieSpan;
 let remainingPARSpan;
 let usedRegaloSpan;
 let remainingRegaloSpan;
+let usedVolontariatoSpan;
+let remainingVolontariatoSpan;
+let usedVisiteMedicheSpan;
 let entryModal;
 let entryForm;
 let modalDate;
@@ -25,9 +28,22 @@ let exportBtn;
 let importBtn;
 let importFileInput;
 let printBtn;
+let riepilogoBtn;
+let riepilogoView;
+let riepilogoContent;
+let closeRiepilogoBtn;
+let printRiepilogoBtn;
+let exportYearBtn;
 let sidebarToggle;
 let sidebar;
 let sidebarClose;
+let setUserIdBtn;
+let userIdDisplay;
+let userIdModal;
+let passphraseInput;
+let togglePassphraseBtn;
+let confirmUserIdBtn;
+let cancelUserIdBtn;
 
 // Stato corrente
 let currentSelectedDate = null;
@@ -52,6 +68,9 @@ async function init() {
     remainingPARSpan = document.getElementById('remainingPAR');
     usedRegaloSpan = document.getElementById('usedRegalo');
     remainingRegaloSpan = document.getElementById('remainingRegalo');
+    usedVolontariatoSpan = document.getElementById('usedVolontariato');
+    remainingVolontariatoSpan = document.getElementById('remainingVolontariato');
+    usedVisiteMedicheSpan = document.getElementById('usedVisiteMediche');
     entryModal = document.getElementById('entryModal');
     entryForm = document.getElementById('entryForm');
     modalDate = document.getElementById('modalDate');
@@ -62,9 +81,22 @@ async function init() {
     importBtn = document.getElementById('importBtn');
     importFileInput = document.getElementById('importFileInput');
     printBtn = document.getElementById('printBtn');
+    riepilogoBtn = document.getElementById('riepilogoBtn');
+    riepilogoView = document.getElementById('riepilogoView');
+    riepilogoContent = document.getElementById('riepilogoContent');
+    closeRiepilogoBtn = document.getElementById('closeRiepilogoBtn');
+    printRiepilogoBtn = document.getElementById('printRiepilogoBtn');
+    exportYearBtn = document.getElementById('exportYearBtn');
     sidebarToggle = document.getElementById('sidebarToggle');
     sidebar = document.getElementById('sidebar');
     sidebarClose = document.getElementById('sidebarClose');
+    setUserIdBtn = document.getElementById('setUserIdBtn');
+    userIdDisplay = document.getElementById('userIdDisplay');
+    userIdModal = document.getElementById('userIdModal');
+    passphraseInput = document.getElementById('passphraseInput');
+    togglePassphraseBtn = document.getElementById('togglePassphraseBtn');
+    confirmUserIdBtn = document.getElementById('confirmUserIdBtn');
+    cancelUserIdBtn = document.getElementById('cancelUserIdBtn');
 
     // Inizializza selettore anni (da 5 anni fa a 5 anni avanti)
     const currentYear = getSettings().currentYear;
@@ -87,6 +119,9 @@ async function init() {
     const settings = getSettings();
     userNameInput.value = settings.userName || '';
     updateUserNameDisplay();
+
+    // Aggiorna display ID utente
+    updateUserIdDisplay();
 
     // Setup event listeners
     setupEventListeners();
@@ -143,6 +178,18 @@ function setupEventListeners() {
     sidebarToggle.addEventListener('click', toggleSidebar);
     sidebarClose.addEventListener('click', toggleSidebar);
 
+    // Riepilogo view
+    riepilogoBtn.addEventListener('click', showRiepilogo);
+    closeRiepilogoBtn.addEventListener('click', hideRiepilogo);
+    printRiepilogoBtn.addEventListener('click', printRiepilogo);
+    exportYearBtn.addEventListener('click', handleExportYear);
+
+    // User ID
+    setUserIdBtn.addEventListener('click', openUserIdModal);
+    confirmUserIdBtn.addEventListener('click', handleConfirmUserId);
+    cancelUserIdBtn.addEventListener('click', closeUserIdModal);
+    togglePassphraseBtn.addEventListener('click', togglePassphraseVisibility);
+
     // Export/Import/Print
     exportBtn.addEventListener('click', handleExport);
     printBtn.addEventListener('click', handlePrint);
@@ -184,7 +231,7 @@ function setupEventListeners() {
 function handleTypeChange() {
     const selectedType = entryForm.querySelector('input[name="type"]:checked').value;
 
-    if (selectedType === 'compleanno' || selectedType === 'wellbeing') {
+    if (selectedType === 'compleanno' || selectedType === 'wellbeing' || selectedType === 'volontariato') {
         hoursInput.value = '8';
         hoursInput.readOnly = true;
         hoursInput.style.background = '#f0f0f0';
@@ -250,6 +297,12 @@ async function handleEntrySave() {
         return;
     }
 
+    // Validazione: max 3 ore per visite mediche
+    if (type === 'visiteMediche' && hours > 3) {
+        alert('⚠️ Non puoi inserire più di 3 ore di visite mediche per un singolo giorno!');
+        return;
+    }
+
     // Validazione: verifica se ci sono già altre entry nello stesso giorno (tipo diverso)
     const currentEntry = getEntry(currentSelectedDate);
 
@@ -262,11 +315,12 @@ async function handleEntrySave() {
         }
     }
 
-    // Validazioni speciali per compleanno e wellbeing
-    if (type === 'compleanno' || type === 'wellbeing') {
+    // Validazioni speciali per compleanno, wellbeing e volontariato
+    if (type === 'compleanno' || type === 'wellbeing' || type === 'volontariato') {
         // Forza sempre 8 ore
         if (hours !== 8) {
-            alert(`${type === 'compleanno' ? 'Compleanno' : 'Well Being'} deve essere una giornata intera (8 ore)`);
+            const typeName = type === 'compleanno' ? 'Compleanno' : type === 'wellbeing' ? 'Well Being' : 'Volontariato';
+            alert(`${typeName} deve essere una giornata intera (8 ore)`);
             hoursInput.value = '8';
             return;
         }
@@ -308,6 +362,12 @@ async function handleEntrySave() {
             }
 
             currentTypeHours = semesterHours;
+        } else if (type === 'volontariato') {
+            currentTypeHours = totals.volontariato;
+            // Sottrai le ore dell'entry corrente se è dello stesso tipo
+            if (currentEntry && currentEntry.type === 'volontariato') {
+                currentTypeHours -= currentEntry.hours;
+            }
         }
 
         // Verifica limiti
@@ -322,6 +382,11 @@ async function handleEntrySave() {
             const semesterName = currentMonth <= 6 ? '1° semestre (Gennaio-Giugno)' : '2° semestre (Luglio-Dicembre)';
 
             alert(`⚠️ Hai già usato 1 giorno di Well Being nel ${semesterName}!\n\nPuoi inserire massimo 1 giorno (8 ore) di Well Being per semestre:\n• 1° semestre: Gennaio-Giugno\n• 2° semestre: Luglio-Dicembre`);
+            return;
+        }
+
+        if (type === 'volontariato' && currentTypeHours + hours > 24) {
+            alert('⚠️ Hai già usato tutte le giornate di volontariato per quest\'anno!\n\nPuoi inserire massimo 3 giorni (24 ore) di volontariato per anno.');
             return;
         }
     }
@@ -411,20 +476,25 @@ function updateCounters() {
     usedFerieSpan.textContent = totals.ferie.toFixed(1);
     usedPARSpan.textContent = totals.par.toFixed(1);
     usedRegaloSpan.textContent = totals.regalo.toFixed(1);
+    usedVolontariatoSpan.textContent = totals.volontariato.toFixed(1);
+    usedVisiteMedicheSpan.textContent = totals.visiteMediche.toFixed(1);
 
     // Ore rimanenti
     const remainingFerie = availableHours.availableVacationHours - totals.ferie;
     const remainingPAR = availableHours.availablePARHours - totals.par;
     const remainingRegalo = 24 - totals.regalo;
+    const remainingVolontariato = 24 - totals.volontariato;
 
     remainingFerieSpan.textContent = remainingFerie.toFixed(1);
     remainingPARSpan.textContent = remainingPAR.toFixed(1);
     remainingRegaloSpan.textContent = remainingRegalo.toFixed(1);
+    remainingVolontariatoSpan.textContent = remainingVolontariato.toFixed(1);
 
     // Cambia colore se negativo
     remainingFerieSpan.style.color = remainingFerie < 0 ? '#f44336' : '#667eea';
     remainingPARSpan.style.color = remainingPAR < 0 ? '#f44336' : '#667eea';
     remainingRegaloSpan.style.color = remainingRegalo < 0 ? '#f44336' : '#667eea';
+    remainingVolontariatoSpan.style.color = remainingVolontariato < 0 ? '#f44336' : '#667eea';
 }
 
 /**
@@ -567,6 +637,14 @@ function handlePrint() {
         const remainingRegalo = 24 - totals.regalo;
         document.getElementById('printRemainingRegalo').textContent = remainingRegalo.toFixed(1);
 
+        // Volontariato
+        document.getElementById('printUsedVolontariato').textContent = totals.volontariato.toFixed(1);
+        const remainingVolontariato = 24 - totals.volontariato;
+        document.getElementById('printRemainingVolontariato').textContent = remainingVolontariato.toFixed(1);
+
+        // Visite Mediche
+        document.getElementById('printUsedVisiteMediche').textContent = totals.visiteMediche.toFixed(1);
+
         // Chiudi sidebar se aperta
         sidebar.classList.remove('open');
 
@@ -574,6 +652,263 @@ function handlePrint() {
         window.print();
     } catch (error) {
         alert('Errore durante la preparazione della stampa: ' + error.message);
+    }
+}
+
+/**
+ * Mostra la vista riepilogo anno
+ */
+function showRiepilogo() {
+    try {
+        const settings = getSettings();
+        const currentYear = settings.currentYear;
+        const userName = settings.userName || 'Utente';
+        const totals = calculateTotals(currentYear);
+        const availableHours = getAvailableHours(currentYear);
+
+        // Aggiorna header
+        document.getElementById('riepilogoYear').textContent = currentYear;
+        document.getElementById('riepilogoUserName').textContent = userName;
+
+        // Popola totalizzatori per stampa
+        document.getElementById('riepilogoAvailableFerie').textContent = availableHours.availableVacationHours;
+        document.getElementById('riepilogoUsedFerie').textContent = totals.ferie.toFixed(1);
+        const remainingFerie = availableHours.availableVacationHours - totals.ferie;
+        document.getElementById('riepilogoRemainingFerie').textContent = remainingFerie.toFixed(1);
+
+        document.getElementById('riepilogoAvailablePAR').textContent = availableHours.availablePARHours;
+        document.getElementById('riepilogoUsedPAR').textContent = totals.par.toFixed(1);
+        const remainingPAR = availableHours.availablePARHours - totals.par;
+        document.getElementById('riepilogoRemainingPAR').textContent = remainingPAR.toFixed(1);
+
+        document.getElementById('riepilogoUsedRegalo').textContent = totals.regalo.toFixed(1);
+        const remainingRegalo = 24 - totals.regalo;
+        document.getElementById('riepilogoRemainingRegalo').textContent = remainingRegalo.toFixed(1);
+
+        document.getElementById('riepilogoUsedVolontariato').textContent = totals.volontariato.toFixed(1);
+        const remainingVolontariato = 24 - totals.volontariato;
+        document.getElementById('riepilogoRemainingVolontariato').textContent = remainingVolontariato.toFixed(1);
+
+        document.getElementById('riepilogoUsedVisiteMediche').textContent = totals.visiteMediche.toFixed(1);
+
+        // Genera contenuto riepilogo
+        riepilogoContent.innerHTML = renderRiepilogo(currentYear);
+
+        // Mostra vista
+        riepilogoView.classList.remove('hidden');
+
+        // Aggiungi classe al body per la stampa
+        document.body.classList.add('riepilogo-open');
+
+        // Chiudi sidebar se aperta
+        sidebar.classList.remove('open');
+    } catch (error) {
+        alert('Errore durante la generazione del riepilogo: ' + error.message);
+    }
+}
+
+/**
+ * Nascondi la vista riepilogo
+ */
+function hideRiepilogo() {
+    riepilogoView.classList.add('hidden');
+    document.body.classList.remove('riepilogo-open');
+}
+
+/**
+ * Stampa la vista riepilogo
+ */
+function printRiepilogo() {
+    window.print();
+}
+
+/**
+ * Genera HTML per la vista riepilogo anno
+ */
+function renderRiepilogo(year) {
+    const entries = getEntriesForYear(year);
+    const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                        'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+    let html = '';
+
+    for (let month = 0; month < 12; month++) {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        html += `<div class="riepilogo-month">`;
+        html += `<div class="month-label">${monthNames[month]}</div>`;
+        html += `<div class="days-row">`;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            const entry = entries[dateStr];
+            const classes = ['day-cell'];
+
+            // Weekend
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                classes.push('weekend');
+            }
+
+            // Festività
+            if (isItalianHoliday(dateStr)) {
+                classes.push('holiday');
+            }
+
+            // Entry con ore
+            if (entry) {
+                if (entry.type === 'ferie') {
+                    classes.push('has-ferie');
+                } else if (entry.type === 'par') {
+                    classes.push('has-par');
+                } else if (entry.type === 'compleanno') {
+                    classes.push('has-compleanno');
+                } else if (entry.type === 'wellbeing') {
+                    classes.push('has-wellbeing');
+                } else if (entry.type === 'volontariato') {
+                    classes.push('has-volontariato');
+                } else if (entry.type === 'visiteMediche') {
+                    classes.push('has-visite-mediche');
+                }
+            }
+
+            // Calcola stile per riempimento proporzionale
+            let style = '';
+            if (entry && entry.hours) {
+                const maxHours = entry.type === 'visiteMediche' ? 3 : 8;
+                const percentage = (entry.hours / maxHours) * 100;
+                let color1, color2;
+
+                if (entry.type === 'ferie') {
+                    color1 = '#4CAF50';
+                    color2 = '#e8f5e9';
+                } else if (entry.type === 'par') {
+                    color1 = '#FF9800';
+                    color2 = '#fff3e0';
+                } else if (entry.type === 'compleanno') {
+                    color1 = '#2196F3';
+                    color2 = '#e3f2fd';
+                } else if (entry.type === 'wellbeing') {
+                    color1 = '#9595FF';
+                    color2 = '#ede7f6';
+                } else if (entry.type === 'volontariato') {
+                    color1 = '#BC7A7A';
+                    color2 = '#fceaea';
+                } else if (entry.type === 'visiteMediche') {
+                    color1 = '#00BCD4';
+                    color2 = '#e0f7fa';
+                }
+
+                style = `background: linear-gradient(to top, ${color1} ${percentage}%, ${color2} ${percentage}%);`;
+            }
+
+            html += `<div class="${classes.join(' ')}" style="${style}">${day}</div>`;
+        }
+
+        html += `</div>`; // days-row
+        html += `</div>`; // riepilogo-month
+    }
+
+    return html;
+}
+
+/**
+ * Aggiorna il display dell'ID utente
+ */
+function updateUserIdDisplay() {
+    const userId = getUserId();
+    if (userId) {
+        // Mostra primi 8 caratteri + "..."
+        userIdDisplay.textContent = userId.substring(0, 8) + '...';
+        userIdDisplay.classList.remove('not-set');
+    } else {
+        userIdDisplay.textContent = 'Non impostato';
+        userIdDisplay.classList.add('not-set');
+    }
+}
+
+/**
+ * Apri modal per impostare ID utente
+ */
+function openUserIdModal() {
+    passphraseInput.value = '';
+    passphraseInput.type = 'password';
+    userIdModal.showModal();
+    passphraseInput.focus();
+}
+
+/**
+ * Chiudi modal ID utente
+ */
+function closeUserIdModal() {
+    userIdModal.close();
+}
+
+/**
+ * Toggle visibilità passphrase
+ */
+function togglePassphraseVisibility() {
+    if (passphraseInput.type === 'password') {
+        passphraseInput.type = 'text';
+        togglePassphraseBtn.textContent = '🙈';
+    } else {
+        passphraseInput.type = 'password';
+        togglePassphraseBtn.textContent = '👁️';
+    }
+}
+
+/**
+ * Conferma e imposta ID utente
+ */
+async function handleConfirmUserId() {
+    const passphrase = passphraseInput.value.trim();
+
+    if (!passphrase) {
+        alert('⚠️ Inserisci una frase segreta!');
+        return;
+    }
+
+    if (passphrase.length < 8) {
+        alert('⚠️ La frase segreta deve essere lunga almeno 8 caratteri!\n\nSuggerimento: usa una frase lunga e memorabile.');
+        return;
+    }
+
+    try {
+        const userId = await setUserId(passphrase);
+        updateUserIdDisplay();
+        closeUserIdModal();
+        alert('✅ Chiave personale impostata con successo!\n\nID: ' + userId.substring(0, 12) + '...');
+    } catch (error) {
+        alert('❌ Errore durante l\'impostazione della chiave: ' + error.message);
+    }
+}
+
+/**
+ * Esporta solo l'anno corrente come JSON
+ */
+function handleExportYear() {
+    try {
+        const currentYear = getSettings().currentYear;
+        const jsonData = exportYearToJSON(currentYear);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        const settings = getSettings();
+        const userName = settings.userName ? `_${settings.userName.replace(/\s+/g, '_')}` : '';
+        const fileName = `calendario_anno_${currentYear}${userName}.json`;
+
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert('✅ Anno esportato con successo!');
+    } catch (error) {
+        alert('Errore durante l\'esportazione: ' + error.message);
     }
 }
 

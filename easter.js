@@ -55,6 +55,7 @@ function getItalianHolidays(year) {
         { month: 4, day: 25, name: 'Festa della Liberazione' },
         { month: 5, day: 1, name: 'Festa dei Lavoratori' },
         { month: 6, day: 2, name: 'Festa della Repubblica' },
+        { month: 6, day: 13, name: 'Sant\'Antonio' },
         { month: 8, day: 15, name: 'Ferragosto' },
         { month: 11, day: 1, name: 'Ognissanti' },
         { month: 12, day: 8, name: 'Immacolata Concezione' },
