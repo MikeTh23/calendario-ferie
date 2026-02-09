@@ -44,6 +44,10 @@ let passphraseInput;
 let togglePassphraseBtn;
 let confirmUserIdBtn;
 let cancelUserIdBtn;
+let rangeMode;
+let startDateInput;
+let endDateInput;
+let rangeInputs;
 
 // Stato corrente
 let currentSelectedDate = null;
@@ -97,6 +101,10 @@ async function init() {
     togglePassphraseBtn = document.getElementById('togglePassphraseBtn');
     confirmUserIdBtn = document.getElementById('confirmUserIdBtn');
     cancelUserIdBtn = document.getElementById('cancelUserIdBtn');
+    rangeMode = document.getElementById('rangeMode');
+    startDateInput = document.getElementById('startDate');
+    endDateInput = document.getElementById('endDate');
+    rangeInputs = document.getElementById('rangeInputs');
 
     // Inizializza selettore anni (da 5 anni fa a 5 anni avanti)
     const currentYear = getSettings().currentYear;
@@ -223,6 +231,15 @@ function setupEventListeners() {
     typeRadios.forEach(radio => {
         radio.addEventListener('change', handleTypeChange);
     });
+
+    // Gestione modalità range (inserimento multiplo)
+    rangeMode.addEventListener('change', handleRangeModeToggle);
+
+    // Gestione cambio azione range (inserisci/cancella)
+    const rangeActionRadios = entryForm.querySelectorAll('input[name="rangeAction"]');
+    rangeActionRadios.forEach(radio => {
+        radio.addEventListener('change', handleRangeActionChange);
+    });
 }
 
 /**
@@ -242,6 +259,64 @@ function handleTypeChange() {
 }
 
 /**
+ * Gestisce il toggle della modalità range (inserimento multiplo)
+ */
+function handleRangeModeToggle() {
+    if (rangeMode.checked) {
+        rangeInputs.style.display = 'block';
+        // Imposta data iniziale e finale con il giorno selezionato
+        if (currentSelectedDate) {
+            startDateInput.value = currentSelectedDate;
+            endDateInput.value = currentSelectedDate;
+        }
+        deleteBtn.style.display = 'none'; // Nascondi elimina in modalità range
+
+        // Reset azione a "insert"
+        const insertRadio = entryForm.querySelector('input[name="rangeAction"][value="insert"]');
+        if (insertRadio) {
+            insertRadio.checked = true;
+        }
+        handleRangeActionChange();
+    } else {
+        rangeInputs.style.display = 'none';
+        // Ripristina visibilità elimina se c'è un entry
+        const entry = getEntry(currentSelectedDate);
+        if (entry) {
+            deleteBtn.style.display = 'inline-block';
+        }
+        // Riabilita campo ore e ripristina validazione
+        hoursInput.disabled = false;
+        hoursInput.setAttribute('required', 'required');
+        hoursInput.style.opacity = '1';
+    }
+}
+
+/**
+ * Gestisce il cambio dell'azione range (inserisci/cancella)
+ */
+function handleRangeActionChange() {
+    const rangeAction = entryForm.querySelector('input[name="rangeAction"]:checked');
+    if (!rangeAction) return;
+
+    if (rangeAction.value === 'delete') {
+        // Disabilita campo ore e rimuovi validazione in modalità cancellazione
+        hoursInput.value = '8'; // Imposta valore dummy valido (non verrà usato)
+        hoursInput.disabled = true;
+        hoursInput.removeAttribute('required');
+        hoursInput.style.opacity = '0.5';
+    } else {
+        // Riabilita campo ore e ripristina validazione in modalità inserimento
+        // Svuota il campo solo se contiene il valore dummy "8" (da modalità Cancella)
+        if (hoursInput.value === '8') {
+            hoursInput.value = '';
+        }
+        hoursInput.disabled = false;
+        hoursInput.setAttribute('required', 'required');
+        hoursInput.style.opacity = '1';
+    }
+}
+
+/**
  * Gestisce il click su un giorno
  * @param {string} dateStr - Data in formato YYYY-MM-DD
  */
@@ -252,6 +327,17 @@ function handleDayClick(dateStr) {
     const date = new Date(dateStr + 'T00:00:00');
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     modalDate.textContent = date.toLocaleDateString('it-IT', options);
+
+    // Reset modalità range
+    rangeMode.checked = false;
+    rangeInputs.style.display = 'none';
+    startDateInput.value = dateStr;
+    endDateInput.value = dateStr;
+
+    // Reset campo ore (riabilita e ripristina validazione)
+    hoursInput.disabled = false;
+    hoursInput.setAttribute('required', 'required');
+    hoursInput.style.opacity = '1';
 
     // Carica entry esistente se presente
     const entry = getEntry(dateStr);
@@ -286,9 +372,19 @@ async function handleEntrySave() {
     let hours = parseFloat(hoursInput.value);
 
     // Validazione ore base
-    if (isNaN(hours) || hours <= 0 || hours > 24) {
-        alert('Inserisci un numero di ore valido (0-24)');
+    if (isNaN(hours) || hours <= 0 || hours > 8) {
+        alert('⚠️ Inserisci un numero di ore valido!\n\nMassimo consentito: 8 ore per giorno lavorativo');
         return;
+    }
+
+    // Gestione modalità range (inserimento o cancellazione multipla)
+    if (rangeMode.checked) {
+        const rangeAction = entryForm.querySelector('input[name="rangeAction"]:checked').value;
+        if (rangeAction === 'delete') {
+            return await handleRangeDelete(type);
+        } else {
+            return await handleRangeSave(type, hours);
+        }
     }
 
     // Validazione: max 8 ore per ferie e PAR
@@ -301,6 +397,35 @@ async function handleEntrySave() {
     if (type === 'visiteMediche' && hours > 3) {
         alert('⚠️ Non puoi inserire più di 3 ore di visite mediche per un singolo giorno!');
         return;
+    }
+
+    // Validazione: controllo ore totali disponibili per Ferie e PAR
+    if (type === 'ferie' || type === 'par') {
+        const currentYear = getSettings().currentYear;
+        const totals = calculateTotals(currentYear);
+        const availableHours = getAvailableHours(currentYear);
+        const currentEntry = getEntry(currentSelectedDate);
+
+        // Calcola ore già usate (escludi entry corrente se stiamo modificando)
+        let usedHours = type === 'ferie' ? totals.ferie : totals.par;
+        if (currentEntry && currentEntry.type === type) {
+            usedHours -= currentEntry.hours;
+        }
+
+        // Verifica se con le nuove ore si supera il limite
+        const maxAvailable = type === 'ferie' ? availableHours.availableVacationHours : availableHours.availablePARHours;
+        const newTotal = usedHours + hours;
+
+        if (newTotal > maxAvailable) {
+            const remaining = maxAvailable - usedHours;
+            const typeName = type === 'ferie' ? 'Ferie' : 'PAR';
+            alert(`⚠️ Ore ${typeName} insufficienti!\n\n` +
+                  `Disponibili: ${maxAvailable}h\n` +
+                  `Già usate: ${usedHours.toFixed(1)}h\n` +
+                  `Rimanenti: ${remaining.toFixed(1)}h\n\n` +
+                  `Non puoi inserire ${hours}h, massimo ${remaining.toFixed(1)}h disponibili.`);
+            return;
+        }
     }
 
     // Validazione: verifica se ci sono già altre entry nello stesso giorno (tipo diverso)
@@ -403,6 +528,236 @@ async function handleEntrySave() {
         updateCounters();
     } catch (error) {
         alert('Errore durante il salvataggio: ' + error.message);
+    }
+}
+
+/**
+ * Gestisce il salvataggio multiplo di entry per un range di date
+ */
+async function handleRangeSave(type, hours) {
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    // Validazione date
+    if (!startDate || !endDate) {
+        alert('⚠️ Seleziona sia la data di inizio che quella di fine!');
+        return;
+    }
+
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+
+    if (end < start) {
+        alert('⚠️ La data di fine deve essere successiva o uguale alla data di inizio!');
+        return;
+    }
+
+    // Calcola giorni nel range (esclusi weekend e festività)
+    const daysToInsert = [];
+    const currentDate = new Date(start);
+
+    while (currentDate <= end) {
+        // Usa formato locale per evitare problemi di timezone
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        const dayOfWeek = currentDate.getDay();
+
+        // Salta weekend (0=domenica, 6=sabato)
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            // Salta festività
+            if (!isItalianHoliday(dateStr)) {
+                daysToInsert.push(dateStr);
+            }
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    if (daysToInsert.length === 0) {
+        alert('⚠️ Nessun giorno lavorativo trovato nel range selezionato!\n\n(Weekend e festività sono esclusi automaticamente)');
+        return;
+    }
+
+    // Conferma con l'utente
+    const confirmMsg = `Vuoi inserire ${hours}h di ${type.toUpperCase()} per ${daysToInsert.length} giorni lavorativi?\n\n` +
+                       `Dal: ${start.toLocaleDateString('it-IT')}\n` +
+                       `Al: ${end.toLocaleDateString('it-IT')}\n\n` +
+                       `Totale ore: ${(hours * daysToInsert.length).toFixed(1)}h`;
+
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+
+    // Validazione: verifica ore totali disponibili per Ferie e PAR
+    if (type === 'ferie' || type === 'par') {
+        const currentYear = getSettings().currentYear;
+        const totals = calculateTotals(currentYear);
+        const availableHours = getAvailableHours(currentYear);
+
+        const totalHoursToInsert = hours * daysToInsert.length;
+        const usedHours = type === 'ferie' ? totals.ferie : totals.par;
+        const maxAvailable = type === 'ferie' ? availableHours.availableVacationHours : availableHours.availablePARHours;
+        const newTotal = usedHours + totalHoursToInsert;
+
+        if (newTotal > maxAvailable) {
+            const remaining = maxAvailable - usedHours;
+            const typeName = type === 'ferie' ? 'Ferie' : 'PAR';
+            alert(`⚠️ Ore ${typeName} insufficienti!\n\n` +
+                  `Disponibili: ${maxAvailable}h\n` +
+                  `Già usate: ${usedHours.toFixed(1)}h\n` +
+                  `Rimanenti: ${remaining.toFixed(1)}h\n\n` +
+                  `Stai cercando di inserire ${totalHoursToInsert.toFixed(1)}h per ${daysToInsert.length} giorni.\n` +
+                  `Massimo disponibile: ${remaining.toFixed(1)}h`);
+            return;
+        }
+    }
+
+    // Validazioni per compleanno/wellbeing/volontariato
+    if (type === 'compleanno' || type === 'wellbeing' || type === 'volontariato') {
+        if (hours !== 8) {
+            const typeName = type === 'compleanno' ? 'Compleanno' : type === 'wellbeing' ? 'Well Being' : 'Volontariato';
+            alert(`${typeName} deve essere una giornata intera (8 ore)`);
+            return;
+        }
+
+        if (type === 'compleanno' && daysToInsert.length > 1) {
+            alert('⚠️ Puoi inserire solo 1 giorno di compleanno per anno!');
+            return;
+        }
+
+        if (type === 'wellbeing' && daysToInsert.length > 2) {
+            alert('⚠️ Puoi inserire massimo 2 giorni di Well Being per anno (1 per semestre)!');
+            return;
+        }
+
+        if (type === 'volontariato' && daysToInsert.length > 3) {
+            alert('⚠️ Puoi inserire massimo 3 giorni di volontariato per anno!');
+            return;
+        }
+    }
+
+    // Salva tutti i giorni
+    try {
+        let insertedCount = 0;
+        let skippedCount = 0;
+
+        for (const dateStr of daysToInsert) {
+            // Verifica se esiste già un entry per questo giorno
+            const existingEntry = getEntry(dateStr);
+            if (existingEntry) {
+                // Salta giorni già occupati
+                skippedCount++;
+                continue;
+            }
+
+            setEntry(dateStr, type, hours);
+            insertedCount++;
+        }
+
+        // Chiudi modal
+        entryModal.close();
+
+        // Aggiorna UI
+        await refreshCalendar();
+        updateCounters();
+
+        // Messaggio riepilogo
+        let message = `✅ Inseriti ${insertedCount} giorni con successo!`;
+        if (skippedCount > 0) {
+            message += `\n\n⚠️ ${skippedCount} giorni saltati (già occupati)`;
+        }
+        alert(message);
+
+    } catch (error) {
+        alert('❌ Errore durante il salvataggio multiplo: ' + error.message);
+    }
+}
+
+/**
+ * Gestisce la cancellazione multipla di entry per un range di date
+ */
+async function handleRangeDelete(type) {
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    // Validazione date
+    if (!startDate || !endDate) {
+        alert('⚠️ Seleziona sia la data di inizio che quella di fine!');
+        return;
+    }
+
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+
+    if (end < start) {
+        alert('⚠️ La data di fine deve essere successiva o uguale alla data di inizio!');
+        return;
+    }
+
+    // Calcola giorni nel range che hanno entry del tipo selezionato
+    const daysToDelete = [];
+    const currentDate = new Date(start);
+
+    while (currentDate <= end) {
+        // Usa formato locale per evitare problemi di timezone
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        // Verifica se esiste un entry di questo tipo per questo giorno
+        const entry = getEntry(dateStr);
+        if (entry && entry.type === type) {
+            daysToDelete.push({ date: dateStr, hours: entry.hours });
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    if (daysToDelete.length === 0) {
+        alert(`⚠️ Nessuna entry di tipo ${type.toUpperCase()} trovata nel range selezionato!`);
+        return;
+    }
+
+    // Calcola totale ore da cancellare
+    const totalHours = daysToDelete.reduce((sum, day) => sum + day.hours, 0);
+
+    // Conferma con l'utente
+    const confirmMsg = `⚠️ ATTENZIONE: Cancellazione multipla\n\n` +
+                       `Tipo: ${type.toUpperCase()}\n` +
+                       `Dal: ${start.toLocaleDateString('it-IT')}\n` +
+                       `Al: ${end.toLocaleDateString('it-IT')}\n\n` +
+                       `Verranno cancellati ${daysToDelete.length} giorni per un totale di ${totalHours.toFixed(1)}h.\n\n` +
+                       `Vuoi procedere con la cancellazione?`;
+
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+
+    // Cancella tutti i giorni
+    try {
+        let deletedCount = 0;
+
+        for (const day of daysToDelete) {
+            deleteEntry(day.date);
+            deletedCount++;
+        }
+
+        // Chiudi modal
+        entryModal.close();
+
+        // Aggiorna UI
+        await refreshCalendar();
+        updateCounters();
+
+        // Messaggio riepilogo
+        alert(`✅ Cancellati ${deletedCount} giorni con successo!\n\nOre recuperate: ${totalHours.toFixed(1)}h`);
+
+    } catch (error) {
+        alert('❌ Errore durante la cancellazione multipla: ' + error.message);
     }
 }
 
